@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body></body>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <div id="app">
+    <div v-for="task in tasks">
+      <input type="text" v-model="task.name" />
+      <button @click="deleteTask(task.id)">DEL</button>
+      <button @click="updateTask(task.id)">UPDATE</button>
+    </div>
+    <input id="task-name-input" type="text" />
+    <button @click="addTask">ADD</button>
+  </div>
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          tasks: [],
+        };
+      },
+      async mounted() {
+        await this.pullTasks();
+      },
+      methods: {
+        async addTask() {
+          const name = document.getElementById("task-name-input").value;
+          await fetch(`api/task?name=${name}`, {
+            method: "PUT",
+          });
+          await this.pullTasks();
+        },
+        async pullTasks() {
+          const tasks = await fetch("api/tasks").then((res) => res.json());
+          this.tasks = tasks;
+        },
+        async deleteTask(id) {
+          await fetch(`api/task/${id}`, { method: "DELETE" });
+          await this.pullTasks();
+        },
+        async updateTask(id) {
+          const name = this.tasks.find((t) => t.id === id).name;
+          await fetch(`api/task/${id}?name=${name}`, { method: "POST" });
+          await this.pullTasks();
+        },
+      },
+    }).mount("#app");
+  </script>
+</html>
